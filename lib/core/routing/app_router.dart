@@ -9,33 +9,27 @@ import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/presentation/customer_login_page.dart';
 import '../../features/auth/presentation/staff_login_page.dart';
 import '../../features/customer/presentation/home_page.dart';
+import '../../features/customer/presentation/booking_page.dart';
+import '../../features/chatbot/presentation/chatbot_page.dart';
 import '../../features/dashboard/admin/presentation/admin_dashboard.dart';
 import '../../features/dashboard/mechanic/presentation/mechanic_dashboard.dart';
 import '../../features/dashboard/advisor/presentation/advisor_dashboard.dart';
 
-final goRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
-  final userRoleState = ref.watch(userRoleProvider);
+final routerProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(userRoleProvider);
 
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/login',
     redirect: (context, state) {
-      final isLoggedIn = authState.value != null;
-      final isLoggingIn = state.matchedLocation == '/login' || state.matchedLocation == '/staff-login';
+      final isLoggedIn = !authState.isLoading && authState.role != null;
+      final isLoginRoute = state.matchedLocation == '/login' || state.matchedLocation == '/staff-login';
+
+      if (authState.isLoading) return null;
+
+      if (!isLoggedIn && !isLoginRoute) return '/login';
       
-      if (userRoleState.isLoading) {
-        return null; // Wait for role to load before redirecting
-      }
-
-      if (!isLoggedIn) {
-        if (!isLoggingIn) return '/login';
-        return null;
-      }
-
-      if (isLoggingIn) {
-        // User is logged in but trying to access login page
-        final role = userRoleState.role;
-        switch (role) {
+      if (isLoggedIn && isLoginRoute) {
+        switch (authState.role) {
           case AppRoles.admin:
             return '/admin';
           case AppRoles.mechanic:
@@ -47,7 +41,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             return '/';
         }
       }
-
       return null;
     },
     routes: [
@@ -55,6 +48,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/',
         name: RouteNames.home,
         builder: (context, state) => const CustomerHomePage(title: 'Customer Home Page'),
+      ),
+      GoRoute(
+        path: '/booking',
+        name: RouteNames.booking,
+        builder: (context, state) => const BookingPage(),
+      ),
+      GoRoute(
+        path: '/chatbot',
+        name: RouteNames.chatbot,
+        builder: (context, state) => const ChatbotPage(),
       ),
       GoRoute(
         path: '/login',

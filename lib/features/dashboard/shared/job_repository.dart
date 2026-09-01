@@ -30,6 +30,21 @@ class JobRepository {
             snapshot.docs.map((doc) => JobModel.fromMap(doc.id, doc.data())).toList());
   }
 
+  Stream<List<JobModel>> getCustomerJobs(String customerId) {
+    return _firestore
+        .collection('jobs')
+        .where('customerId', isEqualTo: customerId)
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => JobModel.fromMap(doc.id, doc.data())).toList());
+  }
+
+  Future<void> createJob(JobModel job, String customerId) async {
+    final data = job.toMap();
+    data['customerId'] = customerId;
+    await _firestore.collection('jobs').add(data);
+  }
+
   Future<void> updateJobStatus(String jobId, String status) async {
     await _firestore.collection('jobs').doc(jobId).update({'status': status});
   }

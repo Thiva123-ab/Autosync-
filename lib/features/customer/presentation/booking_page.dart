@@ -1,0 +1,158 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/package:firebase_auth.dart';
+import '../../dashboard/shared/job_repository.dart';
+import '../../../core/models/job_model.dart';
+import 'package:go_router/go_router.dart';
+
+class BookingPage extends ConsumerStatefulWidget {
+  const BookingPage({super.key});
+
+  @override
+  ConsumerState<BookingPage> createState() => _BookingPageState();
+}
+
+class _BookingPageState extends ConsumerState<BookingPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _vehicleController = TextEditingController();
+  final _titleController = TextEditingController();
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Book a Service'),
+        backgroundColor: Colors.blue.shade700,
+        foregroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                controller: _vehicleController,
+                decoration: const InputDecoration(
+                  labelText: 'Vehicle Make & Model',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.directions_car),
+                ),
+                validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Service Description (e.g. Oil Change)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.build),
+                ),
+                validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+              ),
+              const SizedBox(height: 24),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.calendar_today, color: Colors.blue),
+                title: Text(_selectedDate == null 
+                    ? 'Select Date' 
+                    : '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}'),
+                onTap: () async {
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now().add(const Duration(days: 1)),
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
+                  if (date != null) setState(() => _selectedDate = date);
+                },
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.access_time, color: Colors.blue),
+                title: Text(_selectedTime == null 
+                    ? 'Select Time' 
+                    : _selectedTime!.format(context)),
+                onTap: () async {
+                  final time = await showTimePicker(
+                    context: context,
+                    initialTime: const TimeOfDay(hour: 9, minute: 0),
+                  );
+                  if (time != null) setState(() => _selectedTime = time);
+                },
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _submitBooking,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.blue.shade700,
+                  foregroundColor: Colors.white,
+                ),
+                child: _isLoading 
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text('Confirm Booking', style: TextStyle(fontSize: 18)),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _submitBooking() async {
+    if (_formKey.currentState!.validate()) {
+      if (_selectedDate == null || _selectedTime == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please select date and time')));
+        return;
+      }
+      
+      setState(() => _isLoading = true);
+      
+      try {
+        final customerId = FirebaseAuth.instance.currentUser?.uid;
+        if (customerId == null) throw Exception('Not logged in');
+
+        final scheduledTime = DateTime(
+          _selectedDate!.year, _selectedDate!.month, _selectedDate!.day,
+          _selectedTime!.hour, _selectedTime!.minute
+        );
+
+        final job = JobModel(
+          id: '', // Generated by Firestore
+          vehicleInfo: _vehicleController.text.trim(),
+          title: _titleController.text.trim(),
+          status: 'pending',
+          scheduledTime: scheduledTime,
+        );
+
+        await ref.read(jobRepositoryProvider).createJob(job, customerId);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Booking created successfully!')));
+          context.pop();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error: $e')));
+        }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _vehicleController.dispose();
+    _titleController.dispose();
+    super.dispose();
+  }
+}
