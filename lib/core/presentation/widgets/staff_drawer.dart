@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/package:firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class StaffDrawer extends StatelessWidget {
   final String currentRole;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/package:firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../dashboard/shared/job_repository.dart';
 import '../../../core/models/job_model.dart';
 import '../../../core/routing/route_names.dart';
