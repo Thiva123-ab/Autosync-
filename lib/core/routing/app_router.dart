@@ -28,18 +28,29 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       if (!isLoggedIn && !isLoginRoute) return '/login';
       
-      if (isLoggedIn && isLoginRoute) {
-        switch (authState.role) {
-          case AppRoles.admin:
-            return '/admin';
-          case AppRoles.mechanic:
-            return '/mechanic';
-          case AppRoles.serviceAdvisor:
-            return '/advisor';
-          case AppRoles.customer:
-          default:
-            return '/';
+      if (isLoggedIn) {
+        // If they are on a login route, redirect to their home dashboard
+        if (isLoginRoute) {
+          switch (authState.role) {
+            case AppRoles.admin:
+              return '/admin';
+            case AppRoles.mechanic:
+              return '/mechanic';
+            case AppRoles.serviceAdvisor:
+              return '/advisor';
+            case AppRoles.customer:
+            default:
+              return '/';
+          }
         }
+        
+        // Route Guards: Prevent access to other roles' dashboards
+        final loc = state.matchedLocation;
+        if (loc.startsWith('/admin') && authState.role != AppRoles.admin) return '/';
+        if (loc.startsWith('/mechanic') && authState.role != AppRoles.mechanic) return '/';
+        if (loc.startsWith('/advisor') && authState.role != AppRoles.serviceAdvisor) return '/';
+        // Only customers should be able to access booking
+        if (loc.startsWith('/booking') && authState.role != AppRoles.customer) return '/';
       }
       return null;
     },
