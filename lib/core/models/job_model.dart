@@ -1,0 +1,40 @@
+class JobModel {
+  final String id;
+  final String vehicleInfo;
+  final String title;
+  final String status;
+  final DateTime scheduledTime;
+  final String? assignedMechanicId;
+
+  JobModel({
+    required this.id,
+    required this.vehicleInfo,
+    required this.title,
+    required this.status,
+    required this.scheduledTime,
+    this.assignedMechanicId,
+  });
+
+  factory JobModel.fromMap(String id, Map<String, dynamic> data) {
+    return JobModel(
+      id: id,
+      vehicleInfo: data['vehicleInfo'] ?? '',
+      title: data['title'] ?? '',
+      status: data['status'] ?? 'pending',
+      scheduledTime: data['scheduledTime'] != null
+          ? (data['scheduledTime'] as dynamic).toDate()
+          : DateTime.now(),
+      assignedMechanicId: data['assignedMechanicId'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'vehicleInfo': vehicleInfo,
+      'title': title,
+      'status': status,
+      'scheduledTime': scheduledTime,
+      'assignedMechanicId': assignedMechanicId,
+    };
+  }
+}
