@@ -54,32 +54,32 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         name: RouteNames.home,
-        builder: (context, state) => const PlaceholderPage(title: 'Customer Home Page'),
+        builder: (context, state) => const CustomerHomePage(title: 'Customer Home Page'),
       ),
       GoRoute(
         path: '/login',
         name: RouteNames.login,
-        builder: (context, state) => const PlaceholderPage(title: 'Customer Login'),
+        builder: (context, state) => const CustomerLoginPage(title: 'Customer Login'),
       ),
       GoRoute(
         path: '/staff-login',
         name: RouteNames.staffLogin,
-        builder: (context, state) => const PlaceholderPage(title: 'Staff Login'),
+        builder: (context, state) => const StaffLoginPage(title: 'Staff Login'),
       ),
       GoRoute(
         path: '/admin',
         name: RouteNames.adminDashboard,
-        builder: (context, state) => const PlaceholderPage(title: 'Admin Dashboard'),
+        builder: (context, state) => const AdminDashboard(title: 'Admin Dashboard'),
       ),
       GoRoute(
         path: '/mechanic',
         name: RouteNames.mechanicDashboard,
-        builder: (context, state) => const PlaceholderPage(title: 'Mechanic Dashboard'),
+        builder: (context, state) => const MechanicDashboard(title: 'Mechanic Dashboard'),
       ),
       GoRoute(
         path: '/advisor',
         name: RouteNames.advisorDashboard,
-        builder: (context, state) => const PlaceholderPage(title: 'Advisor Dashboard'),
+        builder: (context, state) => const AdvisorDashboard(title: 'Advisor Dashboard'),
       ),
     ],
   );
