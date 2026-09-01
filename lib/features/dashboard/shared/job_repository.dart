@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/models/job_model.dart';
+import '../../../core/models/job_model.dart';
 
 final jobRepositoryProvider = Provider<JobRepository>((ref) {
   return JobRepository(FirebaseFirestore.instance);
