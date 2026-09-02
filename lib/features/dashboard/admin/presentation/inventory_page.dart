@@ -99,7 +99,8 @@ class InventoryPage extends ConsumerWidget {
                             Text('LOW STOCK', style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                           ],
                         ),
-                      ).animate().pulse(duration: 1.seconds, curve: Curves.easeInOut),
+                      ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+                       .scale(begin: const Offset(1.0, 1.0), end: const Offset(1.1, 1.1), duration: 1.seconds, curve: Curves.easeInOut),
                   ],
                 ),
                 const SizedBox(height: 8),
