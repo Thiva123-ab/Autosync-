@@ -32,6 +32,10 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
       setState(() {
         _errorMessage = e.message ?? 'An error occurred during login.';
       });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+      });
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

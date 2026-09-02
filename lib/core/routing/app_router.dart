@@ -16,11 +16,10 @@ import '../../features/dashboard/mechanic/presentation/mechanic_dashboard.dart';
 import '../../features/dashboard/advisor/presentation/advisor_dashboard.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(userRoleProvider);
-
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: '/login',
     redirect: (context, state) {
+      final authState = ref.read(userRoleProvider);
       final isLoggedIn = !authState.isLoading && authState.role != null;
       final isLoginRoute = state.matchedLocation == '/login' || state.matchedLocation == '/staff-login';
 
@@ -97,4 +96,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+
+  ref.listen(userRoleProvider, (previous, next) {
+    router.refresh();
+  });
+
+  return router;
 });
