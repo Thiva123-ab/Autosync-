@@ -4,7 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui';
 import '../../../../core/presentation/widgets/staff_drawer.dart';
+import '../../../../core/models/job_model.dart';
 import 'job_board_page.dart';
+import 'staff_roster_page.dart';
 
 final adminUsersCountProvider = StreamProvider.autoDispose<int>((ref) {
   return FirebaseFirestore.instance.collection('users').snapshots().map((s) => s.docs.length);
@@ -26,6 +28,22 @@ final adminCompletedJobsCountProvider = StreamProvider.autoDispose<int>((ref) {
       .map((s) => s.docs.length);
 });
 
+final adminCompletedJobsListProvider = StreamProvider.autoDispose<List<JobModel>>((ref) {
+  return FirebaseFirestore.instance
+      .collection('jobs')
+      .where('status', isEqualTo: 'completed')
+      .snapshots()
+      .map((s) => s.docs.map((d) => JobModel.fromMap(d.id, d.data())).toList());
+});
+
+final adminStaffListProvider = StreamProvider.autoDispose<List<Map<String, dynamic>>>((ref) {
+  return FirebaseFirestore.instance
+      .collection('users')
+      .where('role', isEqualTo: 'mechanic')
+      .snapshots()
+      .map((s) => s.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+});
+
 class AdminDashboard extends ConsumerStatefulWidget {
   final String title;
   const AdminDashboard({super.key, required this.title});
@@ -39,6 +57,21 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    Widget currentBody;
+    switch (_currentIndex) {
+      case 0:
+        currentBody = _buildOverview(ref);
+        break;
+      case 1:
+        currentBody = const JobBoardPage();
+        break;
+      case 2:
+        currentBody = const StaffRosterPage();
+        break;
+      default:
+        currentBody = _buildOverview(ref);
+    }
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -57,7 +90,7 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
           ),
         ),
         child: SafeArea(
-          child: _currentIndex == 0 ? _buildOverview(ref) : const JobBoardPage(),
+          child: currentBody,
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -68,7 +101,8 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
         unselectedItemColor: Colors.grey.shade600,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Overview'),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Job Board'),
+          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Jobs'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Staff'),
         ],
       ),
     );
