@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:ui';
 import '../../../core/routing/route_names.dart';
 
@@ -42,6 +43,28 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
       });
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _generateTestAccounts() async {
+    setState(() { _isLoading = true; _errorMessage = 'Creating test accounts...'; });
+    final roles = ['admin', 'mechanic', 'serviceAdvisor'];
+    try {
+      for (var role in roles) {
+        try {
+          final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+            email: '$role@autosync.com',
+            password: 'Password123!',
+          );
+          await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({'role': role});
+        } catch (e) {
+          // Ignore if already exists
+        }
+      }
+      await FirebaseAuth.instance.signOut(); // Sign out from the newly created accounts
+      setState(() { _errorMessage = 'Test accounts created! Emails: admin@..., mechanic@..., advisor@autosync.com. Password: Password123!'; });
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -108,14 +131,17 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
                             child: const Icon(Icons.admin_panel_settings_outlined, size: 60, color: Color(0xFFFF4081)),
                           ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
                           const SizedBox(height: 24),
-                          const Text(
-                            'Staff Portal',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              letterSpacing: 1.2,
+                          GestureDetector(
+                            onLongPress: _generateTestAccounts,
+                            child: const Text(
+                              'Staff Portal',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                letterSpacing: 1.2,
+                              ),
                             ),
                           ).animate().fade(delay: 200.ms).slideY(begin: 0.2),
                           const SizedBox(height: 8),
