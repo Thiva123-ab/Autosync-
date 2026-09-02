@@ -7,6 +7,9 @@ class JobModel {
   final String status;
   final DateTime scheduledTime;
   final String? assignedMechanicId;
+  final String? customerId;
+  final double? quoteAmount;
+  final bool customerApproved;
 
   JobModel({
     required this.id,
@@ -17,6 +20,9 @@ class JobModel {
     required this.status,
     required this.scheduledTime,
     this.assignedMechanicId,
+    this.customerId,
+    this.quoteAmount,
+    this.customerApproved = false,
   });
 
   factory JobModel.fromMap(String id, Map<String, dynamic> data) {
@@ -31,6 +37,9 @@ class JobModel {
           ? (data['scheduledTime'] as dynamic).toDate()
           : DateTime.now(),
       assignedMechanicId: data['assignedMechanicId'],
+      customerId: data['customerId'],
+      quoteAmount: data['quoteAmount'] != null ? (data['quoteAmount'] as num).toDouble() : null,
+      customerApproved: data['customerApproved'] ?? false,
     );
   }
 
@@ -43,6 +52,9 @@ class JobModel {
       'status': status,
       'scheduledTime': scheduledTime,
       'assignedMechanicId': assignedMechanicId,
+      'customerId': customerId,
+      'quoteAmount': quoteAmount,
+      'customerApproved': customerApproved,
     };
   }
 }

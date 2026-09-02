@@ -8,6 +8,7 @@ import '../../../../core/models/job_model.dart';
 import 'job_board_page.dart';
 import 'staff_roster_page.dart';
 import 'inventory_page.dart';
+import 'crm_page.dart';
 
 final adminUsersCountProvider = StreamProvider.autoDispose<int>((ref) {
   return FirebaseFirestore.instance.collection('users').snapshots().map((s) => s.docs.length);
@@ -45,6 +46,14 @@ final adminStaffListProvider = StreamProvider.autoDispose<List<Map<String, dynam
       .map((s) => s.docs.map((d) => {'id': d.id, ...d.data()}).toList());
 });
 
+final adminCustomerListProvider = StreamProvider.autoDispose<List<Map<String, dynamic>>>((ref) {
+  return FirebaseFirestore.instance
+      .collection('users')
+      .where('role', isEqualTo: 'customer')
+      .snapshots()
+      .map((s) => s.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+});
+
 class AdminDashboard extends ConsumerStatefulWidget {
   final String title;
   const AdminDashboard({super.key, required this.title});
@@ -71,6 +80,9 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
         break;
       case 3:
         currentBody = const InventoryPage();
+        break;
+      case 4:
+        currentBody = const CrmPage();
         break;
       default:
         currentBody = _buildOverview(ref);
@@ -109,6 +121,7 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
           BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Jobs'),
           BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Staff'),
           BottomNavigationBarItem(icon: Icon(Icons.inventory_2), label: 'Inventory'),
+          BottomNavigationBarItem(icon: Icon(Icons.contact_mail), label: 'CRM'),
         ],
       ),
     );
