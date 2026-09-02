@@ -105,25 +105,13 @@ class CustomerHomePage extends ConsumerWidget {
           ),
         ),
       ),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF00C6FF).withOpacity(0.4),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
-            )
-          ],
-        ),
-        child: FloatingActionButton.extended(
-          onPressed: () => context.pushNamed(RouteNames.booking),
-          icon: const Icon(Icons.add, color: Colors.white),
-          label: const Text('Book Service', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.1)),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-        ),
-      ).animate(onPlay: (controller) => controller.repeat(reverse: true)).shimmer(duration: 2.seconds, color: Colors.white24),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.pushNamed(RouteNames.booking),
+        icon: const Icon(Icons.add, color: Colors.black87),
+        label: const Text('Book Service', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, letterSpacing: 0.5)),
+        backgroundColor: const Color(0xFF00C6FF),
+        elevation: 4,
+      ).animate().slideY(begin: 1.0, curve: Curves.easeOutBack, duration: 600.ms),
     );
   }
 
@@ -144,17 +132,10 @@ class CustomerHomePage extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withOpacity(0.08),
-            Colors.white.withOpacity(0.02),
-          ],
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.12)),
+        color: Colors.white.withOpacity(0.05),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 5)),
+          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: ClipRRect(
