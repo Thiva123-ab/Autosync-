@@ -7,6 +7,7 @@ import '../../../../core/presentation/widgets/staff_drawer.dart';
 import '../../../../core/models/job_model.dart';
 import 'job_board_page.dart';
 import 'staff_roster_page.dart';
+import 'inventory_page.dart';
 
 final adminUsersCountProvider = StreamProvider.autoDispose<int>((ref) {
   return FirebaseFirestore.instance.collection('users').snapshots().map((s) => s.docs.length);
@@ -68,6 +69,9 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
       case 2:
         currentBody = const StaffRosterPage();
         break;
+      case 3:
+        currentBody = const InventoryPage();
+        break;
       default:
         currentBody = _buildOverview(ref);
     }
@@ -96,6 +100,7 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
+        type: BottomNavigationBarType.fixed,
         backgroundColor: const Color(0xFF1A1A2E),
         selectedItemColor: const Color(0xFF00C6FF),
         unselectedItemColor: Colors.grey.shade600,
@@ -103,6 +108,7 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Overview'),
           BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Jobs'),
           BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Staff'),
+          BottomNavigationBarItem(icon: Icon(Icons.inventory_2), label: 'Inventory'),
         ],
       ),
     );
