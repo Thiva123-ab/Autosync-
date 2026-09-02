@@ -15,10 +15,12 @@ class JobRepository {
     return _firestore
         .collection('jobs')
         .where('assignedMechanicId', isEqualTo: mechanicId)
-        .where('status', isNotEqualTo: 'completed')
         .snapshots()
         .map((snapshot) =>
-            snapshot.docs.map((doc) => JobModel.fromMap(doc.id, doc.data())).toList());
+            snapshot.docs
+                .map((doc) => JobModel.fromMap(doc.id, doc.data()))
+                .where((job) => job.status != 'completed')
+                .toList());
   }
 
   Stream<List<JobModel>> getAllActiveJobs() {
