@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "197340792434",
+    "project_id": "mygarage-thiva",
+    "storage_bucket": "mygarage-thiva.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:197340792434:android:b9417eab3ade2099dce4eb",
+        "android_client_info": {
+          "package_name": "com.autosync.autosync"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYMoCGDdorpkej2T-tyYy0H-PB_VqstYU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
