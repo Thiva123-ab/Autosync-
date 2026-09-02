@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui';
 import '../../../../core/presentation/widgets/staff_drawer.dart';
+import 'job_board_page.dart';
 
 final adminUsersCountProvider = StreamProvider.autoDispose<int>((ref) {
   return FirebaseFirestore.instance.collection('users').snapshots().map((s) => s.docs.length);
@@ -25,21 +26,23 @@ final adminCompletedJobsCountProvider = StreamProvider.autoDispose<int>((ref) {
       .map((s) => s.docs.length);
 });
 
-class AdminDashboard extends ConsumerWidget {
+class AdminDashboard extends ConsumerStatefulWidget {
   final String title;
-
   const AdminDashboard({super.key, required this.title});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final usersCount = ref.watch(adminUsersCountProvider);
-    final activeJobsCount = ref.watch(adminActiveJobsCountProvider);
-    final completedJobsCount = ref.watch(adminCompletedJobsCountProvider);
+  ConsumerState<AdminDashboard> createState() => _AdminDashboardState();
+}
 
+class _AdminDashboardState extends ConsumerState<AdminDashboard> {
+  int _currentIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.1)),
+        title: Text(widget.title, style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.1)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: Colors.white,
@@ -54,73 +57,76 @@ class AdminDashboard extends ConsumerWidget {
           ),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: _currentIndex == 0 ? _buildOverview(ref) : const JobBoardPage(),
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        backgroundColor: const Color(0xFF1A1A2E),
+        selectedItemColor: const Color(0xFF00C6FF),
+        unselectedItemColor: Colors.grey.shade600,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Overview'),
+          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Job Board'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOverview(WidgetRef ref) {
+    final usersCount = ref.watch(adminUsersCountProvider);
+    final activeJobsCount = ref.watch(adminActiveJobsCountProvider);
+    final completedJobsCount = ref.watch(adminCompletedJobsCountProvider);
+
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Overview',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+          ).animate().fade().slideX(),
+          const SizedBox(height: 20),
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
               children: [
-                const Text(
-                  'Overview',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-                ).animate().fade().slideX(),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    children: [
-                      _buildPremiumStatCard(
-                        'Total Users',
-                        usersCount.when(
-                          data: (val) => val.toString(),
-                          loading: () => '...',
-                          error: (_, __) => '!',
-                        ),
-                        Icons.people_alt,
-                        const Color(0xFF00C6FF),
-                        0,
-                      ),
-                      _buildPremiumStatCard(
-                        'Active Bookings',
-                        activeJobsCount.when(
-                          data: (val) => val.toString(),
-                          loading: () => '...',
-                          error: (_, __) => '!',
-                        ),
-                        Icons.calendar_today_rounded,
-                        const Color(0xFFFF9100),
-                        1,
-                      ),
-                      _buildPremiumStatCard(
-                        'Completed Jobs',
-                        completedJobsCount.when(
-                          data: (val) => val.toString(),
-                          loading: () => '...',
-                          error: (_, __) => '!',
-                        ),
-                        Icons.check_circle_outline,
-                        const Color(0xFF00E676),
-                        2,
-                      ),
-                      _buildPremiumStatCard(
-                        'Est. Revenue',
-                        completedJobsCount.when(
-                          data: (val) => '\$${(val * 150).toStringAsFixed(0)}', // Mock calculation based on $150/job
-                          loading: () => '...',
-                          error: (_, __) => '!',
-                        ),
-                        Icons.attach_money_rounded,
-                        const Color(0xFFFF4081),
-                        3,
-                      ),
-                    ],
-                  ),
+                _buildPremiumStatCard(
+                  'Total Users',
+                  usersCount.when(data: (val) => val.toString(), loading: () => '...', error: (_, __) => '!'),
+                  Icons.people_alt,
+                  const Color(0xFF00C6FF),
+                  0,
+                ),
+                _buildPremiumStatCard(
+                  'Active Bookings',
+                  activeJobsCount.when(data: (val) => val.toString(), loading: () => '...', error: (_, __) => '!'),
+                  Icons.calendar_today_rounded,
+                  const Color(0xFFFF9100),
+                  1,
+                ),
+                _buildPremiumStatCard(
+                  'Completed Jobs',
+                  completedJobsCount.when(data: (val) => val.toString(), loading: () => '...', error: (_, __) => '!'),
+                  Icons.check_circle_outline,
+                  const Color(0xFF00E676),
+                  2,
+                ),
+                _buildPremiumStatCard(
+                  'Est. Revenue',
+                  completedJobsCount.when(data: (val) => '\$${(val * 150).toStringAsFixed(0)}', loading: () => '...', error: (_, __) => '!'),
+                  Icons.attach_money_rounded,
+                  const Color(0xFFFF4081),
+                  3,
                 ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }

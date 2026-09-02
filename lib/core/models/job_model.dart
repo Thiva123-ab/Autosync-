@@ -2,6 +2,8 @@ class JobModel {
   final String id;
   final String vehicleInfo;
   final String title;
+  final String? description;
+  final List<String> inspectionPhotos;
   final String status;
   final DateTime scheduledTime;
   final String? assignedMechanicId;
@@ -10,6 +12,8 @@ class JobModel {
     required this.id,
     required this.vehicleInfo,
     required this.title,
+    this.description,
+    this.inspectionPhotos = const [],
     required this.status,
     required this.scheduledTime,
     this.assignedMechanicId,
@@ -20,6 +24,8 @@ class JobModel {
       id: id,
       vehicleInfo: data['vehicleInfo'] ?? '',
       title: data['title'] ?? '',
+      description: data['description'],
+      inspectionPhotos: List<String>.from(data['inspectionPhotos'] ?? []),
       status: data['status'] ?? 'pending',
       scheduledTime: data['scheduledTime'] != null
           ? (data['scheduledTime'] as dynamic).toDate()
@@ -32,6 +38,8 @@ class JobModel {
     return {
       'vehicleInfo': vehicleInfo,
       'title': title,
+      'description': description,
+      'inspectionPhotos': inspectionPhotos,
       'status': status,
       'scheduledTime': scheduledTime,
       'assignedMechanicId': assignedMechanicId,

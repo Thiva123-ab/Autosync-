@@ -41,6 +41,18 @@ class JobRepository {
             snapshot.docs.map((doc) => JobModel.fromMap(doc.id, doc.data())).toList());
   }
 
+  Future<List<Map<String, dynamic>>> getAvailableMechanics() async {
+    final snapshot = await _firestore.collection('users').where('role', isEqualTo: 'mechanic').get();
+    return snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+  }
+
+  Future<void> assignMechanicToJob(String jobId, String mechanicId) async {
+    await _firestore.collection('jobs').doc(jobId).update({
+      'assignedMechanicId': mechanicId,
+      'status': 'pending', // Reset to pending if assigned
+    });
+  }
+
   Future<void> createJob(JobModel job, String customerId) async {
     final data = job.toMap();
     data['customerId'] = customerId;
