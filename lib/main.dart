@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/routing/app_router.dart';
 
 import 'firebase_options.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +21,14 @@ class MyApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'AutoSync',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.dark(
+          primary: const Color(0xFF00C6FF), // Electric Blue
+          secondary: const Color(0xFF0072FF),
+          surface: const Color(0xFF1E1E2C), // Deep Slate Surface
+        ),
+        scaffoldBackgroundColor: const Color(0xFF0F0F1A),
+        textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
         useMaterial3: true,
       ),
       routerConfig: router,
