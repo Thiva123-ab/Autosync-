@@ -29,10 +29,37 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
       if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
         throw Exception('Please enter your email and password.');
       }
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+      
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+      
+      try {
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+      } on FirebaseAuthException catch (e) {
+        // If the account doesn't exist and it's a test account, create it automatically!
+        if ((e.code == 'user-not-found' || e.code == 'invalid-credential') && 
+            (email.startsWith('admin@') || email.startsWith('mechanic@') || email.startsWith('advisor@'))) {
+          
+          setState(() { _errorMessage = 'First time login: Auto-creating test account...'; });
+          
+          final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+            email: email,
+            password: password,
+          );
+          
+          String role = 'admin';
+          if (email.startsWith('mechanic')) role = 'mechanic';
+          if (email.startsWith('advisor')) role = 'serviceAdvisor';
+          
+          await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({'role': role});
+          // After creating, they are logged in automatically.
+        } else {
+          rethrow;
+        }
+      }
     } on FirebaseAuthException catch (e) {
       setState(() {
         _errorMessage = e.message ?? 'An error occurred during login.';
