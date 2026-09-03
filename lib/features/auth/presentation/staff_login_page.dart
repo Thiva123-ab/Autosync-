@@ -56,7 +56,7 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
           
           String role = 'admin';
           if (email.startsWith('mechanic')) role = 'mechanic';
-          if (email.startsWith('advisor')) role = 'serviceAdvisor';
+          if (email.startsWith('advisor')) role = 'service_advisor';
           
           await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({
             'role': role,
@@ -82,7 +82,7 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
 
   Future<void> _generateTestAccounts() async {
     setState(() { _isLoading = true; _errorMessage = 'Creating test accounts...'; });
-    final roles = ['admin', 'mechanic', 'serviceAdvisor'];
+    final roles = ['admin', 'mechanic', 'service_advisor'];
     try {
       for (var role in roles) {
         try {
