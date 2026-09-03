@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,31 +16,38 @@ class UserRoleState {
 }
 
 class UserRoleNotifier extends Notifier<UserRoleState> {
+  StreamSubscription<DocumentSnapshot>? _subscription;
+
   @override
   UserRoleState build() {
     final user = ref.watch(authStateProvider).value;
     
-    // Defer the async fetch so we can return the initial loading state immediately
-    Future.microtask(() => _fetchUserRole(user));
+    _subscription?.cancel();
     
-    return UserRoleState(isLoading: true);
-  }
-
-  Future<void> _fetchUserRole(User? user) async {
     if (user == null) {
-      state = UserRoleState(isLoading: false, role: null);
-      return;
+      return UserRoleState(isLoading: false, role: null);
     }
-    try {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    
+    _subscription = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .snapshots()
+        .listen((doc) {
       if (doc.exists) {
         state = UserRoleState(isLoading: false, role: doc.data()?['role'] ?? AppRoles.customer);
       } else {
         state = UserRoleState(isLoading: false, role: AppRoles.customer);
       }
-    } catch (e) {
+    }, onError: (_) {
       state = UserRoleState(isLoading: false, role: AppRoles.customer);
-    }
+    });
+    
+    // Cleanup subscription on dispose
+    ref.onDispose(() {
+      _subscription?.cancel();
+    });
+    
+    return UserRoleState(isLoading: true);
   }
 }
 

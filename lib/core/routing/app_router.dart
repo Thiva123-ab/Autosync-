@@ -50,6 +50,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         if (loc.startsWith('/advisor') && authState.role != AppRoles.serviceAdvisor) return '/';
         // Only customers should be able to access booking
         if (loc.startsWith('/booking') && authState.role != AppRoles.customer) return '/';
+        
+        // Prevent staff from staying on the customer dashboard
+        if (loc == '/' && authState.role != AppRoles.customer) {
+          switch (authState.role) {
+            case AppRoles.admin: return '/admin';
+            case AppRoles.mechanic: return '/mechanic';
+            case AppRoles.serviceAdvisor: return '/advisor';
+          }
+        }
       }
       return null;
     },
