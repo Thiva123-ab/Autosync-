@@ -10,6 +10,8 @@ class JobModel {
   final String? customerId;
   final double? quoteAmount;
   final bool customerApproved;
+  final String? mechanicNotes;
+  final List<String> requestedParts;
 
   JobModel({
     required this.id,
@@ -23,6 +25,8 @@ class JobModel {
     this.customerId,
     this.quoteAmount,
     this.customerApproved = false,
+    this.mechanicNotes,
+    this.requestedParts = const [],
   });
 
   factory JobModel.fromMap(String id, Map<String, dynamic> data) {
@@ -40,6 +44,8 @@ class JobModel {
       customerId: data['customerId'],
       quoteAmount: data['quoteAmount'] != null ? (data['quoteAmount'] as num).toDouble() : null,
       customerApproved: data['customerApproved'] ?? false,
+      mechanicNotes: data['mechanicNotes'],
+      requestedParts: List<String>.from(data['requestedParts'] ?? []),
     );
   }
 
@@ -55,6 +61,8 @@ class JobModel {
       'customerId': customerId,
       'quoteAmount': quoteAmount,
       'customerApproved': customerApproved,
+      'mechanicNotes': mechanicNotes,
+      'requestedParts': requestedParts,
     };
   }
 }

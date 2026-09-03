@@ -34,10 +34,14 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
       final password = _passwordController.text.trim();
       
       try {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
+        final cred = await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: email,
           password: password,
         );
+        // Ensure email is set in Firestore for existing users who might not have it
+        await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({
+          'email': email,
+        }, SetOptions(merge: true));
       } on FirebaseAuthException catch (e) {
         // If the account doesn't exist and it's a test account, create it automatically!
         if ((e.code == 'user-not-found' || e.code == 'invalid-credential') && 
@@ -54,7 +58,10 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
           if (email.startsWith('mechanic')) role = 'mechanic';
           if (email.startsWith('advisor')) role = 'serviceAdvisor';
           
-          await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({'role': role});
+          await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({
+            'role': role,
+            'email': email,
+          });
           // After creating, they are logged in automatically.
         } else {
           rethrow;
@@ -83,7 +90,10 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
             email: '$role@autosync.com',
             password: 'Password123!',
           );
-          await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({'role': role});
+          await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({
+            'role': role,
+            'email': '$role@autosync.com',
+          });
         } catch (e) {
           // Ignore if already exists
         }

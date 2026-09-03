@@ -42,7 +42,9 @@ class MechanicDashboard extends ConsumerWidget {
         child: SafeArea(
           child: jobsAsyncValue.when(
             data: (jobs) {
-              if (jobs.isEmpty) {
+              final activeJobs = jobs.where((j) => j.status != 'completed').toList();
+              
+              if (activeJobs.isEmpty) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -56,10 +58,10 @@ class MechanicDashboard extends ConsumerWidget {
               }
               return ListView.builder(
                 padding: const EdgeInsets.all(20.0),
-                itemCount: jobs.length,
+                itemCount: activeJobs.length,
                 itemBuilder: (context, index) {
-                  final job = jobs[index];
-                  return _buildPremiumJobCard(job, ref, index);
+                  final job = activeJobs[index];
+                  return JobCard(job: job, index: index);
                 },
               );
             },
@@ -78,12 +80,22 @@ class MechanicDashboard extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildPremiumJobCard(JobModel job, WidgetRef ref, int index) {
+class JobCard extends ConsumerWidget {
+  final JobModel job;
+  final int index;
+
+  const JobCard({super.key, required this.job, required this.index});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final isPending = job.status == 'pending';
-    final statusColor = isPending ? const Color(0xFF00C6FF) : const Color(0xFFFF9100);
-    final statusText = isPending ? 'START JOB' : 'COMPLETE';
-
+    final isInProgress = job.status == 'in_progress';
+    final statusColor = isPending 
+        ? const Color(0xFF00C6FF) 
+        : isInProgress ? const Color(0xFFFF9100) : const Color(0xFF00E676);
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -103,71 +115,99 @@ class MechanicDashboard extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Header: Vehicle & Status
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
                       child: Text(
-                        job.title,
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                        job.vehicleInfo,
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: statusColor.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: statusColor.withOpacity(0.3)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(isPending ? Icons.build_circle : Icons.handyman, size: 14, color: statusColor),
-                          const SizedBox(width: 6),
+                          Icon(
+                            isPending ? Icons.build_circle : (isInProgress ? Icons.timelapse : Icons.check_circle),
+                            size: 14, 
+                            color: statusColor
+                          ),
+                          const SizedBox(width: 4),
                           Text(
-                            job.status.toUpperCase(),
-                            style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                            job.status.toUpperCase().replaceAll('_', ' '),
+                            style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                           ),
                         ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Text(job.vehicleInfo, style: TextStyle(color: Colors.grey.shade300, fontSize: 16)),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(Icons.calendar_month, size: 16, color: Colors.grey.shade500),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${job.scheduledTime.year}-${job.scheduledTime.month.toString().padLeft(2, '0')}-${job.scheduledTime.day.toString().padLeft(2, '0')} at ${job.scheduledTime.hour}:${job.scheduledTime.minute.toString().padLeft(2, '0')}',
-                      style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                    ),
-                  ],
+                // Title and Description
+                Text(job.title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                Text(
+                  job.description != null && job.description!.isNotEmpty 
+                      ? job.description! 
+                      : 'No issue description provided.',
+                  style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      ref.read(jobRepositoryProvider).updateJobStatus(
-                        job.id, 
-                        isPending ? 'in_progress' : 'completed',
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: statusColor,
-                      foregroundColor: isPending ? Colors.black87 : Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 4,
+                const SizedBox(height: 16),
+                const Divider(color: Colors.white12),
+                const SizedBox(height: 8),
+                // Action Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildActionButton(
+                      icon: isInProgress ? Icons.pause_circle_outline : Icons.play_circle_outline, 
+                      label: isInProgress ? 'Pause' : 'Start', 
+                      color: const Color(0xFF00C6FF),
+                      onPressed: () {
+                         ref.read(jobRepositoryProvider).updateJobStatus(
+                           job.id, 
+                           isInProgress ? 'pending' : 'in_progress',
+                         );
+                      }
                     ),
-                    child: Text(
-                      statusText, 
-                      style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                    _buildActionButton(
+                      icon: Icons.note_add_outlined, 
+                      label: 'Notes', 
+                      color: const Color(0xFFFF9100),
+                      onPressed: () {
+                        _showNotesDialog(context, ref, job);
+                      }
                     ),
-                  ),
+                    _buildActionButton(
+                      icon: Icons.inventory_2_outlined, 
+                      label: 'Parts', 
+                      color: const Color(0xFFE040FB),
+                      onPressed: () {
+                        _showPartsDialog(context, ref, job);
+                      }
+                    ),
+                    if (isInProgress)
+                      _buildActionButton(
+                        icon: Icons.check_circle_outline, 
+                        label: 'Finish', 
+                        color: const Color(0xFF00E676),
+                        onPressed: () {
+                          ref.read(jobRepositoryProvider).updateJobStatus(job.id, 'completed');
+                        }
+                      ),
+                  ],
                 ),
               ],
             ),
@@ -175,5 +215,128 @@ class MechanicDashboard extends ConsumerWidget {
         ),
       ),
     ).animate().fade(delay: (100 * index).ms).slideY(begin: 0.2);
+  }
+
+  Widget _buildActionButton({required IconData icon, required String label, required Color color, required VoidCallback onPressed}) {
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 26),
+            const SizedBox(height: 4),
+            Text(label, style: TextStyle(color: Colors.grey.shade300, fontSize: 12, fontWeight: FontWeight.w500)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showNotesDialog(BuildContext context, WidgetRef ref, JobModel job) {
+    final noteCtrl = TextEditingController(text: job.mechanicNotes ?? '');
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        title: const Text('Add Digital Inspection Note', style: TextStyle(color: Colors.white, fontSize: 18)),
+        content: TextField(
+          controller: noteCtrl,
+          maxLines: 4,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: 'Type technical notes or document pre-existing damage...',
+            hintStyle: TextStyle(color: Colors.grey.shade600),
+            enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
+            focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFFFF9100))),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('CANCEL', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton.icon(
+            onPressed: () async {
+              if (noteCtrl.text.isNotEmpty) {
+                await ref.read(jobRepositoryProvider).updateMechanicNotes(job.id, noteCtrl.text.trim());
+                if (ctx.mounted) {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    SnackBar(content: const Text('Notes saved to database!'), backgroundColor: Colors.green.shade800),
+                  );
+                }
+              }
+            },
+            icon: const Icon(Icons.camera_alt),
+            label: const Text('SAVE & UPLOAD'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF9100), 
+              foregroundColor: Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPartsDialog(BuildContext context, WidgetRef ref, JobModel job) {
+    final partCtrl = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        title: const Text('Request Parts', style: TextStyle(color: Colors.white, fontSize: 18)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'A notification will be sent to the Admin/Inventory room to prepare parts for this vehicle.',
+              style: TextStyle(color: Colors.white70),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: partCtrl,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'e.g. Brake Pads',
+                hintStyle: TextStyle(color: Colors.grey.shade600),
+                enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
+                focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFFE040FB))),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('CANCEL', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (partCtrl.text.isNotEmpty) {
+                await ref.read(jobRepositoryProvider).requestJobParts(job.id, job.requestedParts, partCtrl.text.trim());
+                if (ctx.mounted) {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    SnackBar(content: const Text('Part requested from inventory!'), backgroundColor: Colors.purple.shade800),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE040FB), 
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('REQUEST'),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -62,4 +62,12 @@ class JobRepository {
   Future<void> updateJobStatus(String jobId, String status) async {
     await _firestore.collection('jobs').doc(jobId).update({'status': status});
   }
+  Future<void> updateMechanicNotes(String jobId, String notes) async {
+    await _firestore.collection('jobs').doc(jobId).update({'mechanicNotes': notes});
+  }
+
+  Future<void> requestJobParts(String jobId, List<String> currentParts, String newPart) async {
+    final updatedParts = List<String>.from(currentParts)..add(newPart);
+    await _firestore.collection('jobs').doc(jobId).update({'requestedParts': updatedParts});
+  }
 }
