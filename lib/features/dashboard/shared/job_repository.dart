@@ -70,4 +70,11 @@ class JobRepository {
     final updatedParts = List<String>.from(currentParts)..add(newPart);
     await _firestore.collection('jobs').doc(jobId).update({'requestedParts': updatedParts});
   }
+
+  Future<void> updateJobQuote(String jobId, double amount) async {
+    await _firestore.collection('jobs').doc(jobId).update({
+      'quoteAmount': amount,
+      'customerApproved': false, // Reset approval if quote changes
+    });
+  }
 }
