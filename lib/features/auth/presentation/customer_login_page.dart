@@ -51,15 +51,11 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       body: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF0F0F1A),
-          image: DecorationImage(
-            image: const NetworkImage('https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2070&auto=format&fit=crop'),
-            fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(
-              Colors.black.withOpacity(0.65),
-              BlendMode.darken,
-            ),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF0F0F1A), Color(0xFF1A1A2E)],
           ),
         ),
         child: SafeArea(
