@@ -66,7 +66,7 @@ class _AdvisorDashboardState extends ConsumerState<AdvisorDashboard> {
                 );
                 
                 try {
-                  await ref.read(jobRepositoryProvider).createJob(newJob);
+                  await ref.read(jobRepositoryProvider).createJob(newJob, newJob.customerId ?? 'walk_in_customer');
                   if (mounted) {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Job Intake Complete'), backgroundColor: Colors.green));
@@ -237,7 +237,7 @@ class AdvisorJobCard extends ConsumerWidget {
                     leading: const CircleAvatar(backgroundColor: Colors.teal, child: Icon(Icons.person, color: Colors.white)),
                     title: Text(mech['email'] ?? 'Unknown', style: const TextStyle(color: Colors.white)),
                     onTap: () async {
-                      await ref.read(jobRepositoryProvider).assignJob(job.id, mech['id']);
+                      await ref.read(jobRepositoryProvider).assignMechanicToJob(job.id, mech['id']);
                       if (context.mounted) Navigator.pop(context);
                     },
                   );
@@ -290,9 +290,9 @@ class AdvisorJobCard extends ConsumerWidget {
                     Text(job.vehicleInfo, style: const TextStyle(color: Colors.white70, fontSize: 14)),
                   ],
                 ),
-                if (job.description.isNotEmpty) ...[
+                if (job.description != null && job.description!.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Text(job.description, style: const TextStyle(color: Colors.white54, fontSize: 13, fontStyle: FontStyle.italic)),
+                  Text(job.description!, style: const TextStyle(color: Colors.white54, fontSize: 13, fontStyle: FontStyle.italic)),
                 ],
                 const SizedBox(height: 16),
                 Divider(color: Colors.white.withOpacity(0.1)),
