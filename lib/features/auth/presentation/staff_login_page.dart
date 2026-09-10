@@ -38,10 +38,23 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
           email: email,
           password: password,
         );
-        // Ensure email is set in Firestore for existing users who might not have it
-        await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({
-          'email': email,
-        }, SetOptions(merge: true));
+        
+        // Auto-fix roles for test accounts if they were created manually or missing a role
+        String? roleToSet;
+        if (email.startsWith('admin@')) roleToSet = 'admin';
+        if (email.startsWith('mechanic@')) roleToSet = 'mechanic';
+        if (email.startsWith('advisor@') || email.startsWith('service_advisor@')) roleToSet = 'service_advisor';
+
+        final updateData = <String, dynamic>{'email': email};
+        if (roleToSet != null) {
+          updateData['role'] = roleToSet;
+        }
+
+        // Ensure email and role are set in Firestore
+        await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set(
+          updateData, 
+          SetOptions(merge: true)
+        );
       } on FirebaseAuthException catch (e) {
         // If the account doesn't exist and it's a test account, create it automatically!
         if ((e.code == 'user-not-found' || e.code == 'invalid-credential') && 
@@ -49,20 +62,27 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
           
           setState(() { _errorMessage = 'First time login: Auto-creating test account...'; });
           
-          final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-            email: email,
-            password: password,
-          );
-          
-          String role = 'admin';
-          if (email.startsWith('mechanic')) role = 'mechanic';
-          if (email.startsWith('advisor')) role = 'service_advisor';
-          
-          await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({
-            'role': role,
-            'email': email,
-          });
-          // After creating, they are logged in automatically.
+          try {
+            final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+              email: email,
+              password: password,
+            );
+            
+            String role = 'admin';
+            if (email.startsWith('mechanic')) role = 'mechanic';
+            if (email.startsWith('advisor')) role = 'service_advisor';
+            
+            await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({
+              'role': role,
+              'email': email,
+            });
+            // After creating, they are logged in automatically.
+          } on FirebaseAuthException catch (createError) {
+            if (createError.code == 'email-already-in-use') {
+              throw Exception('Incorrect password. The account already exists.');
+            }
+            rethrow;
+          }
         } else {
           rethrow;
         }
@@ -82,18 +102,19 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
 
   Future<void> _generateTestAccounts() async {
     setState(() { _isLoading = true; _errorMessage = 'Creating test accounts...'; });
-    final roles = ['admin', 'mechanic', 'service_advisor'];
+    final accounts = [
+      {'email': 'admin@autosync.com', 'role': 'admin'},
+      {'email': 'mechanic@autosync.com', 'role': 'mechanic'},
+      {'email': 'advisor@autosync.com', 'role': 'service_advisor'},
+    ];
     try {
-      for (var role in roles) {
+      for (var acc in accounts) {
         try {
           final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-            email: '$role@autosync.com',
+            email: acc['email']!,
             password: 'Password123!',
           );
-          await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set({
-            'role': role,
-            'email': '$role@autosync.com',
-          });
+          await FirebaseFirestore.instance.collection('users').doc(cred.user!.uid).set(acc);
         } catch (e) {
           // Ignore if already exists
         }
