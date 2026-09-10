@@ -118,11 +118,15 @@ class _StaffLoginPageState extends State<StaffLoginPage> {
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF0F0F1A), Color(0xFF1A1A2E)],
+        decoration: BoxDecoration(
+          color: const Color(0xFF0F0F1A),
+          image: DecorationImage(
+            image: const NetworkImage('https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?q=80&w=2574&auto=format&fit=crop'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.4),
+              BlendMode.darken,
+            ),
           ),
         ),
         child: SafeArea(
