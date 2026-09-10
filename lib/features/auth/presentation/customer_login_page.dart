@@ -51,11 +51,15 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF0F0F1A), Color(0xFF1A1A2E)],
+        decoration: BoxDecoration(
+          color: const Color(0xFF0F0F1A),
+          image: DecorationImage(
+            image: const NetworkImage('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.4),
+              BlendMode.darken,
+            ),
           ),
         ),
         child: SafeArea(
@@ -66,23 +70,23 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
                 constraints: const BoxConstraints(maxWidth: 400),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: Colors.white.withOpacity(0.05)),
+                  border: Border.all(color: Colors.white.withOpacity(0.15), width: 1.5),
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Colors.white.withOpacity(0.08),
-                      Colors.white.withOpacity(0.02),
+                      Colors.white.withOpacity(0.2),
+                      Colors.white.withOpacity(0.05),
                     ],
                   ),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
+                    BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 30, offset: const Offset(0, 15)),
                   ],
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(30),
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                    filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
                     child: Padding(
                       padding: const EdgeInsets.all(32.0),
                       child: Column(
@@ -221,7 +225,7 @@ class _CustomerLoginPageState extends State<CustomerLoginPage> {
         labelStyle: TextStyle(color: Colors.grey.shade400),
         prefixIcon: Icon(icon, color: Colors.grey.shade400),
         filled: true,
-        fillColor: Colors.black.withOpacity(0.2),
+        fillColor: Colors.black.withOpacity(0.3),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
