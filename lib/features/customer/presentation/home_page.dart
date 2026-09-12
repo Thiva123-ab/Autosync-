@@ -8,6 +8,7 @@ import 'dart:ui';
 import '../../dashboard/shared/job_repository.dart';
 import '../../../core/models/job_model.dart';
 import '../../../core/routing/route_names.dart';
+import '../../../core/presentation/widgets/theme_toggle_button.dart';
 
 final customerJobsProvider = StreamProvider.autoDispose<List<JobModel>>((ref) {
   final customerId = FirebaseAuth.instance.currentUser?.uid;
@@ -23,6 +24,7 @@ class CustomerHomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final jobsAsyncValue = ref.watch(customerJobsProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -33,12 +35,14 @@ class CustomerHomePage extends ConsumerWidget {
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: AppBar(
               title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-              backgroundColor: Colors.black.withOpacity(0.3),
+              backgroundColor: theme.appBarTheme.backgroundColor?.withOpacity(0.7) ?? Colors.transparent,
               elevation: 0,
               actions: [
+                const ThemeToggleButton().animate().fade(delay: 100.ms),
+                const SizedBox(width: 8),
                 IconButton(
                   icon: const Icon(Icons.chat_bubble_outline),
-                  color: const Color(0xFF00C6FF),
+                  color: theme.colorScheme.primary,
                   onPressed: () => context.pushNamed(RouteNames.chatbot),
                 ).animate().scale(delay: 200.ms, duration: 400.ms, curve: Curves.easeOutBack),
                 IconButton(
