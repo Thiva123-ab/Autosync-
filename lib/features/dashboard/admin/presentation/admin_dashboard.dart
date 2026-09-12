@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui';
 import '../../../../core/presentation/widgets/staff_drawer.dart';
+import '../../../../core/presentation/widgets/theme_toggle_button.dart';
 import '../../../../core/models/job_model.dart';
 import 'job_board_page.dart';
 import 'staff_roster_page.dart';
@@ -67,10 +68,13 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     Widget currentBody;
     switch (_currentIndex) {
       case 0:
-        currentBody = _buildOverview(ref);
+        currentBody = _buildOverview(ref, theme, isDark);
         break;
       case 1:
         currentBody = const JobBoardPage();
@@ -85,49 +89,69 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
         currentBody = const CrmPage();
         break;
       default:
-        currentBody = _buildOverview(ref);
+        currentBody = _buildOverview(ref, theme, isDark);
     }
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(widget.title, style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.1)),
+        title: Text(widget.title, style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.1, color: theme.colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: Colors.white,
+        iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16.0),
+            child: Center(child: ThemeToggleButton()),
+          )
+        ],
       ),
       drawer: const StaffDrawer(currentRole: 'Admin'),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF0F0F1A), Color(0xFF1A1A2E)],
+            colors: isDark 
+                ? [const Color(0xFF0F0F1A), const Color(0xFF1A1A2E)] 
+                : [const Color(0xFFF5F7FA), const Color(0xFFE4E9F2)],
           ),
         ),
         child: SafeArea(
           child: currentBody,
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF1A1A2E),
-        selectedItemColor: const Color(0xFF00C6FF),
-        unselectedItemColor: Colors.grey.shade600,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Overview'),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Jobs'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Staff'),
-          BottomNavigationBarItem(icon: Icon(Icons.inventory_2), label: 'Inventory'),
-          BottomNavigationBarItem(icon: Icon(Icons.contact_mail), label: 'CRM'),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: theme.colorScheme.surface,
+          selectedItemColor: theme.colorScheme.primary,
+          unselectedItemColor: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+          elevation: 0,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Overview'),
+            BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Jobs'),
+            BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Staff'),
+            BottomNavigationBarItem(icon: Icon(Icons.inventory_2), label: 'Inventory'),
+            BottomNavigationBarItem(icon: Icon(Icons.contact_mail), label: 'CRM'),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildOverview(WidgetRef ref) {
+  Widget _buildOverview(WidgetRef ref, ThemeData theme, bool isDark) {
     final usersCount = ref.watch(adminUsersCountProvider);
     final activeJobsCount = ref.watch(adminActiveJobsCountProvider);
     final completedJobsCount = ref.watch(adminCompletedJobsCountProvider);
@@ -137,9 +161,9 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
+          Text(
             'Overview',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
           ).animate().fade().slideX(),
           const SizedBox(height: 20),
           Expanded(
@@ -154,6 +178,8 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
                   Icons.people_alt,
                   const Color(0xFF00C6FF),
                   0,
+                  theme,
+                  isDark
                 ),
                 _buildPremiumStatCard(
                   'Active Bookings',
@@ -161,6 +187,8 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
                   Icons.calendar_today_rounded,
                   const Color(0xFFFF9100),
                   1,
+                  theme,
+                  isDark
                 ),
                 _buildPremiumStatCard(
                   'Completed Jobs',
@@ -168,6 +196,8 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
                   Icons.check_circle_outline,
                   const Color(0xFF00E676),
                   2,
+                  theme,
+                  isDark
                 ),
                 _buildPremiumStatCard(
                   'Est. Revenue',
@@ -175,6 +205,8 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
                   Icons.attach_money_rounded,
                   const Color(0xFFFF4081),
                   3,
+                  theme,
+                  isDark
                 ),
               ],
             ),
@@ -184,14 +216,20 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
     );
   }
 
-  Widget _buildPremiumStatCard(String title, String value, IconData icon, Color color, int index) {
+  Widget _buildPremiumStatCard(String title, String value, IconData icon, Color color, int index, ThemeData theme, bool isDark) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.12)),
-        color: Colors.white.withOpacity(0.05),
+        border: Border.all(
+          color: isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.05),
+        ),
+        color: isDark ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.6),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+            color: isDark ? Colors.black.withOpacity(0.15) : Colors.black.withOpacity(0.03), 
+            blurRadius: 10, 
+            offset: const Offset(0, 4)
+          ),
         ],
       ),
       child: ClipRRect(
@@ -214,13 +252,13 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
                 const SizedBox(height: 16),
                 Text(
                   value,
-                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.grey.shade400, fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: 14, color: isDark ? Colors.grey.shade400 : Colors.grey.shade700, fontWeight: FontWeight.w500),
                 ),
               ],
             ),
