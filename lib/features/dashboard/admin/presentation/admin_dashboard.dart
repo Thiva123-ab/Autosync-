@@ -225,7 +225,14 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
               ),
               _buildPremiumStatCard(
                 'Est. Revenue',
-                completedJobsCount.when(data: (val) => '\$${(val * 150).toStringAsFixed(0)}', loading: () => '...', error: (_, __) => '!'),
+                ref.watch(adminCompletedJobsListProvider).when(
+                  data: (jobs) {
+                    final revenue = jobs.fold<double>(0, (sum, job) => sum + (job.quoteAmount ?? 150.0));
+                    return '\$${revenue.toStringAsFixed(0)}';
+                  },
+                  loading: () => '...',
+                  error: (_, __) => '!'
+                ),
                 Icons.attach_money_rounded,
                 const Color(0xFFFF4081),
                 3,
