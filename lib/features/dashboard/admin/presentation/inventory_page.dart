@@ -15,6 +15,8 @@ class InventoryPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final inventoryAsync = ref.watch(inventoryListProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: Colors.transparent, // Uses parent's gradient
@@ -32,9 +34,9 @@ class InventoryPage extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.inventory_2_outlined, size: 80, color: Colors.white.withOpacity(0.2)),
+                  Icon(Icons.inventory_2_outlined, size: 80, color: isDark ? Colors.white.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.2)),
                   const SizedBox(height: 16),
-                  Text('Inventory is empty.', style: TextStyle(color: Colors.grey.shade400, fontSize: 18)),
+                  Text('Inventory is empty.', style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade600, fontSize: 18)),
                 ],
               ).animate().fade().scale(),
             );
@@ -45,7 +47,7 @@ class InventoryPage extends ConsumerWidget {
             itemCount: items.length,
             itemBuilder: (context, index) {
               final item = items[index];
-              return _buildInventoryCard(context, ref, item, index);
+              return _buildInventoryCard(context, ref, item, index, theme, isDark);
             },
           );
         },
@@ -55,10 +57,10 @@ class InventoryPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildInventoryCard(BuildContext context, WidgetRef ref, InventoryItemModel item, int index) {
+  Widget _buildInventoryCard(BuildContext context, WidgetRef ref, InventoryItemModel item, int index, ThemeData theme, bool isDark) {
     final isLow = item.isLowStock;
-    final cardColor = isLow ? Colors.redAccent.withOpacity(0.1) : Colors.white.withOpacity(0.05);
-    final borderColor = isLow ? Colors.redAccent.withOpacity(0.5) : Colors.white.withOpacity(0.12);
+    final cardColor = isLow ? Colors.redAccent.withValues(alpha: 0.1) : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.6));
+    final borderColor = isLow ? Colors.redAccent.withValues(alpha: 0.5) : (isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.05));
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -66,7 +68,7 @@ class InventoryPage extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: borderColor),
         color: cardColor,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
@@ -81,13 +83,13 @@ class InventoryPage extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(item.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                      child: Text(item.name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
                     ),
                     if (isLow)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.redAccent.withOpacity(0.2),
+                          color: Colors.redAccent.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.redAccent),
                         ),
@@ -128,6 +130,7 @@ class InventoryPage extends ConsumerWidget {
                         _buildQtyButton(
                           icon: Icons.remove,
                           color: Colors.orangeAccent,
+                          isDark: isDark,
                           onPressed: () {
                             if (item.quantity > 0) {
                               ref.read(inventoryRepositoryProvider).updateQuantity(item.id, item.quantity - 1);
@@ -138,6 +141,7 @@ class InventoryPage extends ConsumerWidget {
                         _buildQtyButton(
                           icon: Icons.add,
                           color: const Color(0xFF00C6FF),
+                          isDark: isDark,
                           onPressed: () {
                             ref.read(inventoryRepositoryProvider).updateQuantity(item.id, item.quantity + 1);
                           },
@@ -154,15 +158,15 @@ class InventoryPage extends ConsumerWidget {
     ).animate().fade(delay: (50 * index).ms).slideY(begin: 0.1);
   }
 
-  Widget _buildQtyButton({required IconData icon, required Color color, required VoidCallback onPressed}) {
+  Widget _buildQtyButton({required IconData icon, required Color color, required VoidCallback onPressed, required bool isDark}) {
     return InkWell(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
-          border: Border.all(color: color.withOpacity(0.3)),
+          color: color.withValues(alpha: 0.15),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(icon, color: color, size: 24),
@@ -179,19 +183,19 @@ class InventoryPage extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: const Text('Add Inventory Item', style: TextStyle(color: Colors.white)),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Text('Add Inventory Item', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildTextField(nameCtrl, 'Part Name (e.g. Brake Pads)'),
+              _buildTextField(nameCtrl, 'Part Name (e.g. Brake Pads)', context: context),
               const SizedBox(height: 12),
-              _buildTextField(qtyCtrl, 'Initial Quantity', isNumber: true),
+              _buildTextField(qtyCtrl, 'Initial Quantity', isNumber: true, context: context),
               const SizedBox(height: 12),
-              _buildTextField(thresholdCtrl, 'Low Stock Alert Threshold', isNumber: true),
+              _buildTextField(thresholdCtrl, 'Low Stock Alert Threshold', isNumber: true, context: context),
               const SizedBox(height: 12),
-              _buildTextField(supplierCtrl, 'Supplier Info'),
+              _buildTextField(supplierCtrl, 'Supplier Info', context: context),
             ],
           ),
         ),
@@ -222,15 +226,18 @@ class InventoryPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, {bool isNumber = false}) {
+  Widget _buildTextField(TextEditingController controller, String label, {bool isNumber = false, required BuildContext context}) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return TextField(
       controller: controller,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: theme.colorScheme.onSurface),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Colors.grey.shade500),
-        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
+        labelStyle: TextStyle(color: isDark ? Colors.grey.shade500 : Colors.grey.shade600),
+        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: isDark ? Colors.white.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.2))),
         focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF00C6FF))),
       ),
     );
