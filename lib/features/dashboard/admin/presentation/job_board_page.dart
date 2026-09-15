@@ -15,6 +15,8 @@ class JobBoardPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final jobsAsyncValue = ref.watch(adminAllActiveJobsProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return jobsAsyncValue.when(
       data: (jobs) {
@@ -23,9 +25,9 @@ class JobBoardPage extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.assignment_turned_in, size: 80, color: Colors.white.withOpacity(0.2)),
+                Icon(Icons.assignment_turned_in, size: 80, color: isDark ? Colors.white.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.2)),
                 const SizedBox(height: 16),
-                Text('No active jobs in the system.', style: TextStyle(color: Colors.grey.shade400, fontSize: 18)),
+                Text('No active jobs in the system.', style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade600, fontSize: 18)),
               ],
             ).animate().fade().scale(curve: Curves.easeOutBack),
           );
@@ -39,15 +41,15 @@ class JobBoardPage extends ConsumerWidget {
           padding: const EdgeInsets.all(20.0),
           children: [
             if (pendingJobs.isNotEmpty) ...[
-              const Text('Queued Jobs', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text('Queued Jobs', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
               const SizedBox(height: 16),
-              ...pendingJobs.map((job) => _buildAdminJobCard(context, ref, job, Colors.redAccent)),
+              ...pendingJobs.map((job) => _buildAdminJobCard(context, ref, job, Colors.redAccent, isDark, theme)),
               const SizedBox(height: 24),
             ],
             if (inProgressJobs.isNotEmpty) ...[
-              const Text('In Progress', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text('In Progress', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
               const SizedBox(height: 16),
-              ...inProgressJobs.map((job) => _buildAdminJobCard(context, ref, job, Colors.orange)),
+              ...inProgressJobs.map((job) => _buildAdminJobCard(context, ref, job, Colors.orange, isDark, theme)),
             ],
           ],
         );
@@ -57,16 +59,16 @@ class JobBoardPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildAdminJobCard(BuildContext context, WidgetRef ref, JobModel job, Color statusColor) {
+  Widget _buildAdminJobCard(BuildContext context, WidgetRef ref, JobModel job, Color statusColor, bool isDark, ThemeData theme) {
     final hasMechanic = job.assignedMechanicId != null && job.assignedMechanicId!.isNotEmpty;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.12)),
-        color: Colors.white.withOpacity(0.05),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 10, offset: const Offset(0, 4))],
+        border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.05)),
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.6),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
@@ -81,27 +83,27 @@ class JobBoardPage extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(job.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                      child: Text(job.title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.15),
+                        color: statusColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: statusColor.withOpacity(0.3)),
+                        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                       ),
                       child: Text(job.status.toUpperCase(), style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(job.vehicleInfo, style: TextStyle(color: Colors.grey.shade300, fontSize: 14)),
+                Text(job.vehicleInfo, style: TextStyle(color: isDark ? Colors.grey.shade300 : Colors.grey.shade700, fontSize: 14)),
                 if (job.description != null && job.description!.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Text('Notes: ${job.description}', style: TextStyle(color: Colors.grey.shade400, fontSize: 13, fontStyle: FontStyle.italic)),
+                  Text('Notes: ${job.description}', style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade600, fontSize: 13, fontStyle: FontStyle.italic)),
                 ],
                 const SizedBox(height: 16),
-                const Divider(color: Colors.white12),
+                Divider(color: isDark ? Colors.white12 : Colors.black12),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -155,8 +157,8 @@ class JobBoardPage extends ConsumerWidget {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: const Color(0xFF1A1A2E),
-          title: const Text('Assign Mechanic', style: TextStyle(color: Colors.white)),
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          title: Text('Assign Mechanic', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
           content: SizedBox(
             width: double.maxFinite,
             child: ListView.builder(
@@ -171,8 +173,8 @@ class JobBoardPage extends ConsumerWidget {
                     backgroundColor: isCurrentlyAssigned ? Colors.green : Colors.blueGrey,
                     child: const Icon(Icons.engineering, color: Colors.white),
                   ),
-                  title: Text(mechanic['email'] ?? 'Unknown', style: const TextStyle(color: Colors.white)),
-                  subtitle: Text(isCurrentlyAssigned ? 'Currently Assigned' : 'Available', style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
+                  title: Text(mechanic['email'] ?? 'Unknown', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                  subtitle: Text(isCurrentlyAssigned ? 'Currently Assigned' : 'Available', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                   trailing: isCurrentlyAssigned ? const Icon(Icons.check, color: Colors.green) : null,
                   onTap: () async {
                     Navigator.pop(ctx);
