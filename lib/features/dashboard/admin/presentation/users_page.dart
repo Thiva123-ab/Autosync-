@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:ui';
 import 'admin_dashboard.dart';
 
@@ -123,8 +124,18 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Action menu placeholder
-                Icon(Icons.more_vert, color: isDark ? Colors.white54 : Colors.black54),
+                PopupMenuButton<String>(
+                  icon: Icon(Icons.more_vert, color: isDark ? Colors.white54 : Colors.black54),
+                  onSelected: (value) => _changeUserRole(user['id'], value),
+                  itemBuilder: (context) => [
+                    if (role != 'ADMIN')
+                      const PopupMenuItem(value: 'admin', child: Text('Make Admin')),
+                    if (role != 'MECHANIC')
+                      const PopupMenuItem(value: 'mechanic', child: Text('Make Mechanic')),
+                    if (role != 'CUSTOMER')
+                      const PopupMenuItem(value: 'customer', child: Text('Make Customer')),
+                  ],
+                ),
               ],
             ),
           ),
@@ -133,6 +144,15 @@ class _UsersPageState extends ConsumerState<UsersPage> {
     ).animate().fade(delay: (50 * index).ms).slideY(begin: 0.1);
   }
 
+  Future<void> _changeUserRole(String userId, String newRole) async {
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(userId).update({'role': newRole});
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating role: $e')));
+      }
+    }
+  }
 
   Widget _buildSegmentedControl(ThemeData theme, bool isDark) {
     return Padding(
