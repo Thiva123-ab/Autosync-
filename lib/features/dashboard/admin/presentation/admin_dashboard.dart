@@ -40,6 +40,13 @@ final adminCompletedJobsListProvider = StreamProvider.autoDispose<List<JobModel>
       .map((s) => s.docs.map((d) => JobModel.fromMap(d.id, d.data())).toList());
 });
 
+final adminAllUsersListProvider = StreamProvider.autoDispose<List<Map<String, dynamic>>>((ref) {
+  return FirebaseFirestore.instance
+      .collection('users')
+      .snapshots()
+      .map((s) => s.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+});
+
 final adminStaffListProvider = StreamProvider.autoDispose<List<Map<String, dynamic>>>((ref) {
   return FirebaseFirestore.instance
       .collection('users')
