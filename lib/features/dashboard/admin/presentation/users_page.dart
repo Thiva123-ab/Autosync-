@@ -23,7 +23,19 @@ class _UsersPageState extends ConsumerState<UsersPage> {
 
     return Column(
       children: [
-        const SizedBox(height: 100), // SafeArea + AppBar space
+        const SizedBox(height: 70), // Clear the AppBar
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('User Management', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+              const SizedBox(height: 4),
+              Text('Manage roles and permissions for all users', style: TextStyle(color: isDark ? Colors.grey.shade400 : Colors.grey.shade600, fontSize: 14)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
         _buildSegmentedControl(theme, isDark),
         Expanded(
           child: usersAsync.when(

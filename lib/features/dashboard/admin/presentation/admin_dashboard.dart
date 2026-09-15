@@ -135,8 +135,8 @@ class _AdminDashboardState extends ConsumerState<AdminDashboard> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark 
-                ? [const Color(0xFF0F0F1A), const Color(0xFF1A1A2E)] 
-                : [const Color(0xFFF5F7FA), const Color(0xFFE4E9F2)],
+                ? [const Color(0xFF161A30), const Color(0xFF0F0F1A)] 
+                : [const Color(0xFFEEF2F6), const Color(0xFFE0E7FF)],
           ),
         ),
         child: SafeArea(
